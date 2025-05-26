@@ -33,7 +33,7 @@ const Detail = () => {
   useEffect(() => {
     axios.get(`http://localhost:8000/diarys/${diary_id}`)
       .then(async (response) => {
-        setDiary(response.data);
+        setEvent(response.data);
         setLoading(false);
 
         // 이미지가 있을 경우 presigned URL 요청
@@ -66,7 +66,7 @@ const Detail = () => {
 
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>{error}</p>;
-  if (!diary) return <p>일기 정보가 없습니다.</p>;
+  if (!event) return <p>일기 정보가 없습니다.</p>;
 
   return (
     <div ref={containerRef}>

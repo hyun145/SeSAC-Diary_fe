@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
 const List = () => {
-  const [diarys, setDiarys] = useState([]);
+  const [diarys, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrls, setImageUrls] = useState({});
@@ -47,7 +47,7 @@ const List = () => {
   useEffect(() => {
     axios.get('http://localhost:8000/diarys/')
       .then((response) => {
-        setDiarys(response.data);
+        setEvents(response.data);
         setLoading(false);
       })
       .catch((err) => {
@@ -106,6 +106,7 @@ const List = () => {
             </li>
           ))}
         </ul>
+
       )}
       <button onClick={() => navigate("/regist")}>일기 등록</button>
     </div>
