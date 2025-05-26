@@ -3,6 +3,7 @@ import List from "./diary/List";
 import Regist from "./diary/Regist";
 import Detail from "./diary/Detail";
 import Login from "./user/Login";
+import Signup from "./user/SignUp";
 import { useEffect, useState } from "react";
 import DiaryUpload from "./diary/DiaryUpload"; 
 import OauthHandler from "./user/OauthHandler";
@@ -64,6 +65,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
                         <Route path="/regist" element={<Regist />} />
                         <Route path="/list" element={<List />} />
                         <Route path="/detail/:diary_id" element={<Detail />} />
