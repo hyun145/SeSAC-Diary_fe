@@ -1,15 +1,16 @@
 import "../App.css";
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Detail = () => {
-  const { diary_id } = useParams(); // URL 파라미터 이름을 diary_id로 맞추세요
+  const { diary_id } = useParams();
   const [diary, setDiary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [showDownload, setShowDownload] = useState(false);
+  const containerRef = useRef(null);
   const navigate = useNavigate();
 
   const emotionToEmoji = (emotion) => {
@@ -27,7 +28,7 @@ const Detail = () => {
       default:
         return '❓';
     }
-  }
+  };
 
   useEffect(() => {
     axios.get(`http://localhost:8000/diarys/${diary_id}`)
@@ -35,7 +36,7 @@ const Detail = () => {
         setDiary(response.data);
         setLoading(false);
 
-        // presigned url로 이미지 가져오기
+        // 이미지가 있을 경우 presigned URL 요청
         if (response.data.image) {
           const token = window.sessionStorage.getItem("access_token");
           const presignedRes = await axios.get(
@@ -45,25 +46,70 @@ const Detail = () => {
           setImageUrl(presignedRes.data.download_url);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setError('일기 정보를 불러오는 데 실패했습니다.');
-        console.log(diary_id);
         setLoading(false);
       });
   }, [diary_id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setShowDownload(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>{error}</p>;
   if (!diary) return <p>일기 정보가 없습니다.</p>;
 
   return (
-    <div>
+    <div ref={containerRef}>
       <h2>{diary.title}</h2>
-      {imageUrl && <img src={imageUrl} alt={diary.title} style={{ width: '300px' }} />}
+
+      {imageUrl && (
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <img
+            src={imageUrl}
+            alt={diary.title}
+            style={{ width: '300px', cursor: 'pointer', display: 'block' }}
+            onClick={() => setShowDownload(!showDownload)}
+          />
+          {showDownload && (
+            <a
+              href={imageUrl}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                backgroundColor: '#e0e0e0',
+                color: '#555555',
+                padding: '4px 8px',
+                fontSize: '12px',
+                borderRadius: '4px',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                userSelect: 'none',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              }}
+            >
+              이미지 다운로드
+            </a>
+          )}
+        </div>
+      )}
+
       <p><strong>내용:</strong> {diary.content}</p>
-      <p><strong>상태:</strong> {diary.state}</p>
+      <p><strong>공개여부:</strong> {diary.state ? "공개" : "비공개"}</p>
       <p><strong>감정:</strong> {emotionToEmoji(diary.emotion)}</p>
-      <p><strong>일기 ID:</strong> {diary.id}</p>
 
       <button onClick={() => navigate('/list')} style={{ marginTop: '20px' }}>
         목록으로

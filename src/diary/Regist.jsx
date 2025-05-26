@@ -3,25 +3,23 @@ import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-
 export default function Regist() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    id: "",
     title: "",
     content: "",
-    state: "public", // 기본값
+    state: "public",
   });
   const [image, setImage] = useState(null);
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  setForm({
-    ...form,
-    [name]: value,
-  });
-};
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({
+      ...form,
+      [name]: value,
+    });
+  };
 
   const handleChangeFile = (e) => {
     setImage(e.target.files[0]);
@@ -35,27 +33,17 @@ const handleChange = (e) => {
       let image_url = "";
 
       if (image) {
-
         const ext = image.name.split('.').pop().toLowerCase();
-        // 1. Presigned URL 요청
         const presignedRes = await axios.get(`http://localhost:8000/diarys/presigned-url?file_type=${ext}`, {
-  headers: { Authorization: `Bearer ${token}` }
-});
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const { url, key } = presignedRes.data;
 
-        // 2. 이미지 S3 업로드
-        await axios.put(url, image, {
-          headers: { 
-
-         }
-        });
-
-        // 3. 실제 이미지 KEY 저장장
+        await axios.put(url, image); // S3로 업로드
         image_url = key;
       }
-      // 4. 일기 등록 요청
+
       const res = await axios.post("http://localhost:8000/diarys/", {
-        id: parseInt(form.id),
         title: form.title,
         content: form.content,
         state: form.state,
@@ -81,13 +69,6 @@ const handleChange = (e) => {
     <>
       <h2>일기 등록</h2>
       <form onSubmit={handleSubmit}>
-        {/* <input
-          type="number"
-          name="id"
-          value={form.id}
-          onChange={handleChange}
-          placeholder="일기 번호를 입력하세요."
-        /> */}
         <input
           type="text"
           name="title"
@@ -105,7 +86,7 @@ const handleChange = (e) => {
         />
         <input type="file" onChange={handleChangeFile} />
         <label>
-          상태:
+          공개여부:
           <select name="state" value={form.state} onChange={handleChange}>
             <option value="public">공개</option>
             <option value="private">비공개</option>
