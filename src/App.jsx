@@ -7,6 +7,7 @@ import Signup from "./user/SignUp";
 import { useEffect, useState } from "react";
 import DiaryUpload from "./diary/DiaryUpload"; 
 import OauthHandler from "./user/OauthHandler";
+import CalendarComponent from "./Calendar";
 
 function Layout() {
     const [isLogin, setIsLogin] = useState(false);
@@ -71,6 +72,7 @@ function App() {
                         <Route path="/detail/:diary_id" element={<Detail />} />
                         <Route path="/diary/upload" element={<DiaryUpload />} />
                         <Route path="/oauth" element={<OauthHandler />} />
+                        <Route path="/calendar" element={<CalendarComponent />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

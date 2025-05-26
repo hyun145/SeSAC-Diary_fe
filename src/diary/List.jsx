@@ -2,6 +2,7 @@ import "../App.css";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import CalendarComponent from '../Calendar'; 
 
 const List = () => {
   const [diarys, setEvents] = useState([]);
@@ -42,7 +43,7 @@ const List = () => {
       navigate("/login");
     }
   }, []);
-
+  
   // 일기 목록 가져오기
   useEffect(() => {
     axios.get('http://localhost:8000/diarys/')
@@ -61,6 +62,7 @@ const List = () => {
 
   return (
     <div style={{ padding: '20px' }}>
+      <CalendarComponent />
       <h2>일기 목록</h2>
       {diarys.length === 0 ? (
         <p>일기가 없습니다.</p>
