@@ -114,7 +114,7 @@ const Detail = () => {
 
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>{error}</p>;
-  if (!diary) return <p>일기 정보가 없습니다.</p>;
+  if (!event) return <p>일기 정보가 없습니다.</p>;
 
   return (
     <div ref={containerRef}>
