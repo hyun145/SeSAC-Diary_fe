@@ -91,7 +91,7 @@ export const StyledCalendarWrapper = styled.div`
   /* 네비게이션 월 스타일 적용 */
   .react-calendar__year-view__months__month {
     border-radius: 0.8rem;
-    background-color:rgb(252, 0, 0); /* gray_5 */
+    background-color:rgb(255, 255, 255); /* gray_5 */
     padding: 0;
     flex: 0 0 calc(33.3333% - 10px) !important;
     margin-inline-start: 5px !important;
@@ -105,9 +105,9 @@ export const StyledCalendarWrapper = styled.div`
 
   /* 네비게이션 현재 월 스타일 적용 */
   .react-calendar__tile--hasActive {
-    background-color:rgb(0, 0, 0); /* primary_2 */
+    background-color:rgb(207, 255, 207); /* primary_2 */
     abbr {
-      color: white;
+      color:rgb(0, 0, 0);
     }
   }
 
