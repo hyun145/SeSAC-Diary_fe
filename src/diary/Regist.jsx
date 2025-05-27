@@ -1,10 +1,13 @@
 import "../App.css";
 import axios from "axios";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Regist() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const passedDate = location.state?.diary_date || new Date().toISOString().slice(0, 10);
 
   const [form, setForm] = useState({
     title: "",
@@ -56,6 +59,7 @@ export default function Regist() {
         content: form.content,
         state: form.state,
         image: image_url,
+        diary_date: passedDate,
       }, {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -73,19 +73,18 @@ const List = () => {
         });
     }, []);
 
-    // 선택된 날짜와 일기 작성일이 같으면 필터링
-    useEffect(() => {
-        if (selectedDate) {
-
-            const filtered = diarys.filter(
-                (diary) =>
-                    new Date(diary.created_at).toISOString().slice(0, 10) === selectedDate
-            );
-            setFilteredDiarys(filtered);
-        } else {
-            setFilteredDiarys(diarys);
-        }
-    }, [selectedDate, diarys]);
+// useEffect 내부 (선택된 날짜와 일기 작성일이 같으면 필터링)
+useEffect(() => {
+    if (selectedDate) {
+        const filtered = diarys.filter(
+            (diary) =>
+                new Date(diary.diary_date).toISOString().slice(0, 10) === selectedDate
+        );
+        setFilteredDiarys(filtered);
+    } else {
+        setFilteredDiarys(diarys);
+    }
+}, [selectedDate, diarys]);
 
     if (loading) return <p>로딩 중...</p>;
     if (error) return <p>{error}</p>;
@@ -94,12 +93,11 @@ const List = () => {
         <div style={{ padding: '20px' }}>
 
             <CalendarComponent
-                onDateSelect={setSelectedDate}
-                attendDates={Array.from(
-                    new Set(diarys.map(d => new Date(d.created_at).toISOString().slice(0, 10)))
-                )}
+              onDateSelect={setSelectedDate}
+              attendDates={Array.from(
+                new Set(diarys.map(d => new Date(d.diary_date).toISOString().slice(0, 10)))
+              )}
             />
-
 
       <h2>
         {new Date(selectedDate).toLocaleDateString('ko-KR', {
@@ -155,9 +153,13 @@ const List = () => {
           ))}
         </ul>
       )}
-      <button className="write-button" onClick={() => navigate("/regist")}> {/* App.css의 .write-button 스타일 적용 */}
-                <span className="icon">✏️</span> 글쓰기
-            </button>
+      <button
+        className="write-button"
+        onClick={() => navigate("/regist", { state: { diary_date: selectedDate } })}
+      >
+        <span className="icon">✏️</span> 글쓰기
+      </button>
+
     </div>
   );
 };
