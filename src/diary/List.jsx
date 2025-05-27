@@ -11,9 +11,18 @@ const List = () => {
     const [imageUrls, setImageUrls] = useState({});
     const [filteredDiarys, setFilteredDiarys] = useState([]);
     const [selectedDate, setSelectedDate] = useState(
-        new Date().toISOString().slice(0, 10)
+        // 로컬 시간 기준으로 초기 날짜 설정
+        (() => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        })()
     );
     const navigate = useNavigate();
+
+    const [isDuplicate, setIsDuplicate] = useState(false); 
 
     // Presigned URL 받아오기
     const getPresignedUrl = async (key) => {
@@ -39,17 +48,17 @@ const List = () => {
         if (diarys.length > 0) fetchPresignedUrls();
     }, [diarys]);
 
-  // 로그인 체크
-  useEffect(() => {
-    const token = window.sessionStorage.getItem("access_token");
-    if (!token) {
-      alert("로그인 후 사용하세요.");
-      navigate("/login");
-    }
-  }, []);
-  
-  // 일기 목록 가져오기
-  useEffect(() => {
+    // 로그인 체크
+    useEffect(() => {
+        const token = window.sessionStorage.getItem("access_token");
+        if (!token) {
+            alert("로그인 후 사용하세요.");
+            navigate("/login");
+        }
+    }, []);
+    
+    // 일기 목록 가져오기
+    useEffect(() => {
         const token = window.sessionStorage.getItem("access_token");
         if (!token) {
             setLoading(false);
@@ -60,10 +69,8 @@ const List = () => {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then((response) => {
-            // 날짜 내림차순으로 정렬 (최신 일기가 위에 오도록)
-            // `created_at`이 문자열로 올 수 있으므로 `new Date()`로 변환하여 비교
-            const sortedDiarys = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            setDiarys(sortedDiarys);
+            // 백엔드에서 이미 정렬되어 오므로, 클라이언트 측 정렬은 제거
+            setDiarys(response.data); 
             setLoading(false);
         })
         .catch((err) => {
@@ -73,21 +80,43 @@ const List = () => {
         });
     }, []);
 
-// useEffect 내부 (선택된 날짜와 일기 작성일이 같으면 필터링)
-useEffect(() => {
-    if (selectedDate) {
-        const filtered = diarys.filter(
-            (diary) =>
-                new Date(diary.diary_date).toISOString().slice(0, 10) === selectedDate
-        );
-        setFilteredDiarys(filtered);
-    } else {
-        setFilteredDiarys(diarys);
-    }
-}, [selectedDate, diarys]);
+    const checkDuplicateDiary = async (date) => {
+        const token = window.sessionStorage.getItem("access_token");
+        if (!token) return; // 토큰이 없으면 검사하지 않음
+
+        try {
+            const res = await axios.get(`http://localhost:8000/diarys/check-duplicate`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { diary_date: date }
+            });
+            setIsDuplicate(res.data.exists); // true or false
+        } catch (err) {
+            console.error("중복 검사 실패:", err);
+            setIsDuplicate(false); // 오류 발생 시 안전하게 false로 설정
+        }
+    };
+
+    // useEffect 내부 (선택된 날짜와 일기 작성일이 같으면 필터링)
+    useEffect(() => {
+        if (selectedDate) {
+            // 기존 필터링 로직 (UI 표시용)
+            const filtered = diarys.filter(
+                (diary) => diary.diary_date === selectedDate 
+            );
+            setFilteredDiarys(filtered);
+            
+            checkDuplicateDiary(selectedDate);
+
+        } else {
+            setFilteredDiarys(diarys);
+            setIsDuplicate(false); // 날짜가 선택되지 않으면 중복 아님으로 설정
+        }
+    }, [selectedDate, diarys]); // diarys가 변경될 때도 filteredDiarys가 업데이트되므로 의존성 배열에 추가
 
     if (loading) return <p>로딩 중...</p>;
     if (error) return <p>{error}</p>;
+
+    // const hasDiaryForSelectedDate = filteredDiarys.length > 0; // 이 변수는 이제 사용하지 않아도 됩니다.
 
     return (
         <div style={{ padding: '20px' }}>
@@ -95,73 +124,76 @@ useEffect(() => {
             <CalendarComponent
               onDateSelect={setSelectedDate}
               attendDates={Array.from(
-                new Set(diarys.map(d => new Date(d.diary_date).toISOString().slice(0, 10)))
+                new Set(diarys.map(d => d.diary_date))
               )}
             />
 
-      <h2>
-        {new Date(selectedDate).toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long'
-        })}의 일기
-      </h2>
-      
-      {filteredDiarys.length === 0 ? (
-      <p>오늘은 일기가 없습니다.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {filteredDiarys.map((diary) => (
-            <li
-              key={diary.id}
-              style={{
-                marginBottom: '20px',
-                borderBottom: '1px solid #ccc',
-                paddingBottom: '20px',
-              }}
+            <h2>
+                {new Date(selectedDate).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                })}의 일기
+            </h2>
+            
+            {filteredDiarys.length === 0 ? (
+            <p>오늘은 일기가 없습니다.</p>
+            ) : (
+                <ul style={{ listStyle: "none", padding: 0 }}>
+                    {filteredDiarys.map((diary) => (
+                        <li
+                            key={diary.id}
+                            style={{
+                                marginBottom: '20px',
+                                borderBottom: '1px solid #ccc',
+                                paddingBottom: '20px',
+                            }}
+                        >
+                            <Link
+                                to={`/detail/${diary.id}`}
+                                style={{ textDecoration: "none", color: "inherit" }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
+                                    {diary.image && imageUrls[diary.id] && (
+                                        <img
+                                            src={imageUrls[diary.id]}
+                                            alt={diary.title}
+                                            style={{
+                                                width: '200px',
+                                                height: 'auto',
+                                                objectFit: 'cover',
+                                                borderRadius: '8px',
+                                            }}
+                                        />
+                                    )}
+                                    <div>
+                                        <h3>{diary.title}</h3>
+                                        <p style={{ maxWidth: "500px", color: "#555" }}>
+                                            {diary.content.length > 100
+                                                ? diary.content.slice(0, 100) + "..."
+                                                : diary.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            <button
+                className="write-button"
+                onClick={() => navigate("/regist", { state: { diary_date: selectedDate } })}
+                disabled={isDuplicate} 
+                style={{
+                    backgroundColor: isDuplicate ? '#cccccc' : '', // 중복이면 회색, 아니면 기본 색상
+                    cursor: isDuplicate ? 'not-allowed' : 'pointer', // 마우스 오버 시 커서 모양 변경
+                }}
             >
-              <Link
-                to={`/detail/${diary.id}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
-                  {diary.image && imageUrls[diary.id] && (
-                    <img
-                      src={imageUrls[diary.id]}
-                      alt={diary.title}
-                      style={{
-                        width: '200px',
-                        height: 'auto',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
-                      }}
-                    />
-                  )}
-                  <div>
-                    <h3>{diary.title}</h3>
-                    <p style={{ maxWidth: "500px", color: "#555" }}>
-                      {diary.content.length > 100
-                        ? diary.content.slice(0, 100) + "..."
-                        : diary.content}
-                    </p>
-                    
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-      <button
-        className="write-button"
-        onClick={() => navigate("/regist", { state: { diary_date: selectedDate } })}
-      >
-        <span className="icon">✏️</span> 글쓰기
-      </button>
-
-    </div>
-  );
+                <span className="icon">✏️</span> {isDuplicate ? "오늘 일기 작성 완료" : "글쓰기"}
+            </button>
+        </div>
+    );
 };
 
 export default List;
