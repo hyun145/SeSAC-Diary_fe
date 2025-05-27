@@ -16,6 +16,7 @@ const List = () => {
   const navigate = useNavigate();
 
   // Presigned URL 받아오기
+  // Presigned URL 받아오기
   const getPresignedUrl = async (key) => {
     const token = window.sessionStorage.getItem("access_token");
     const res = await axios.get(
@@ -145,6 +146,7 @@ const List = () => {
 
       )}
       <button onClick={() => navigate("/regist")}>일기 등록</button>
+    </div>
     </div>
   );
 };
