@@ -2,13 +2,17 @@ import "../App.css";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import CalendarComponent from '../Calendar'; 
+import CalendarComponent from '../calendar'; 
 
 const List = () => {
   const [diarys, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageUrls, setImageUrls] = useState({});
+  const [filteredDiarys, setFilteredDiarys] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const navigate = useNavigate();
 
   // Presigned URL 받아오기
@@ -57,18 +61,48 @@ const List = () => {
       });
   }, []);
 
+  // 선택된 날짜와 일기 작성일이 같으면 필터링
+  useEffect(() => {
+    if (selectedDate) {
+    
+      const filtered = diarys.filter(
+        (diary) =>
+          new Date(diary.created_at).toISOString().slice(0, 10) === selectedDate
+      );
+      setFilteredDiarys(filtered);
+    } else {
+      setFilteredDiarys(diarys);
+    }
+  }, [selectedDate, diarys]);
+
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div style={{ padding: '20px' }}>
-      <CalendarComponent />
-      <h2>일기 목록</h2>
-      {diarys.length === 0 ? (
-        <p>일기가 없습니다.</p>
+
+      <CalendarComponent
+        onDateSelect={setSelectedDate}
+        attendDates={Array.from(
+          new Set(diarys.map(d => new Date(d.created_at).toISOString().slice(0, 10)))
+        )}
+      />
+
+
+      <h2>
+        {new Date(selectedDate).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        })}의 일기
+      </h2>
+      
+      {filteredDiarys.length === 0 ? (
+      <p>오늘은 일기가 없습니다.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
-          {diarys.map((diary) => (
+          {filteredDiarys.map((diary) => (
             <li
               key={diary.id}
               style={{

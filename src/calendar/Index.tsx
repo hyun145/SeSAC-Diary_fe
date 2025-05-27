@@ -1,4 +1,3 @@
-// src/Calendar/index.tsx
 import React, { useState } from "react";
 import moment from "moment";
 import {
@@ -12,21 +11,36 @@ import {
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 
-const CalendarComponent = () => {
+interface CalendarComponentProps {
+  attendDates?: string[]; // 글 등록된 날짜들 (YYYY-MM-DD)
+  onDateSelect: (date: string) => void; // 날짜 클릭 시 호출되는 함수
+}
+
+const CalendarComponent: React.FC<CalendarComponentProps> = ({
+  attendDates = [], // 기본 빈 배열로 설정
+  onDateSelect,
+}) => {
   const today = new Date();
   const [date, setDate] = useState<Value>(today);
   const [activeStartDate, setActiveStartDate] = useState<Date | null>(today);
 
-  const attendDay = ["2023-12-03", "2023-12-13"]; // 출석한 날짜 예시
+  // attendDates가 datetime 문자열일 경우 YYYY-MM-DD 형식으로 변환된 배열
+  const formattedAttendDates = attendDates.map((d) =>
+    moment(d).format("YYYY-MM-DD")
+  );
 
   const handleDateChange = (newDate: Value) => {
     setDate(newDate);
+    if (newDate instanceof Date) {
+      onDateSelect(moment(newDate).format("YYYY-MM-DD"));
+    }
   };
 
   const handleTodayClick = () => {
     const today = new Date();
     setActiveStartDate(today);
     setDate(today);
+    onDateSelect(moment(today).format("YYYY-MM-DD"));
   };
 
   return (
@@ -48,12 +62,14 @@ const CalendarComponent = () => {
         }
         tileContent={({ date, view }) => (
           <>
+            {/* 오늘 표시 */}
             {view === "month" &&
               date.getMonth() === today.getMonth() &&
               date.getDate() === today.getDate() && (
                 <StyledToday>오늘</StyledToday>
               )}
-            {attendDay.includes(moment(date).format("YYYY-MM-DD")) && (
+            {/* 일기 등록 날짜 점 표시 */}
+            {formattedAttendDates.includes(moment(date).format("YYYY-MM-DD")) && (
               <StyledDot />
             )}
           </>
