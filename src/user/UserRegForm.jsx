@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const UserRegForm = () => {
     const [email, setEmail] = useState('');
-    const [userName, setUserName] = useState('');
+    const [username, setUserName] = useState('');
     const [password, setPassword] = useState('');
     const [isEmailAvailable, setIsEmailAvailable] = useState(null);
     const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
@@ -36,7 +36,7 @@ const UserRegForm = () => {
 // 닉네임 중복 체크
     const checkUsernameDuplicate = async () => {
         try {
-            const response = await axios.get(`http://localhost:8000/users/checkusername/${userName}`);
+            const response = await axios.get(`http://localhost:8000/users/checkusername/${username}`);
             if (response.data.message === 'Username available') {
                 setIsUsernameAvailable(true);
                 alert('사용 가능한 닉네임입니다.');
@@ -71,7 +71,7 @@ const UserRegForm = () => {
             console.log("일로 들어옴. ")
             const response = await axios.post('http://localhost:8000/users/signup', {
                 email : email,
-                userName: userName,
+                username: username,
                 password : password,
                 role : 'user'
             });
@@ -101,7 +101,7 @@ const UserRegForm = () => {
                 </div>
 
                 <div>
-                    <input type="text" value={userName}
+                    <input type="text" value={username}
                         onChange={(e) => setUserName(e.target.value)}
                         placeholder="닉네임을 입력하세요."
                         required

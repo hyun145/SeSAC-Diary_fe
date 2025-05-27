@@ -9,7 +9,7 @@ export default function Regist() {
   const [form, setForm] = useState({
     title: "",
     content: "",
-    state: "public",
+    state: true,
   });
   const [image, setImage] = useState(null);
 
@@ -23,6 +23,14 @@ export default function Regist() {
 
   const handleChangeFile = (e) => {
     setImage(e.target.files[0]);
+  };
+
+  const handleStateChange = (e) => {
+    // select 박스의 value는 항상 문자열이므로, 불리언으로 변환해야 합니다.
+    setForm({
+      ...form,
+      state: e.target.value === "public" ? true : false,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -87,7 +95,7 @@ export default function Regist() {
         <input type="file" onChange={handleChangeFile} />
         <label>
           공개여부:
-          <select name="state" value={form.state} onChange={handleChange}>
+          <select name="state" value={form.state ? "public" : "private"} onChange={handleStateChange}>
             <option value="public">공개</option>
             <option value="private">비공개</option>
           </select>

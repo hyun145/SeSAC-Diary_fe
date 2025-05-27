@@ -30,27 +30,75 @@ const Detail = () => {
     }
   };
 
-  useEffect(() => {
-    axios.get(`http://localhost:8000/diarys/${diary_id}`)
-      .then(async (response) => {
-        setDiary(response.data);
-        setLoading(false);
+  // useEffect(() => {
+  //   axios.get(`http://localhost:8000/diarys/${diary_id}`)
+  //     .then(async (response) => {
+  //       setDiary(response.data);
+  //       setLoading(false);
 
-        // 이미지가 있을 경우 presigned URL 요청
+  //       // 이미지가 있을 경우 presigned URL 요청
+  //       if (response.data.image) {
+  //         const token = window.sessionStorage.getItem("access_token");
+  //         const presignedRes = await axios.get(
+  //           `http://localhost:8000/diarys/download-url?file_key=${encodeURIComponent(response.data.image)}`,
+  //           { headers: { Authorization: `Bearer ${token}` } }
+  //         );
+  //         setImageUrl(presignedRes.data.download_url);
+  //       }
+  //     })
+  //     .catch(() => {
+  //       setError('일기 정보를 불러오는 데 실패했습니다.');
+  //       setLoading(false);
+  //     });
+  // }, [diary_id]);
+
+  useEffect(() => {
+    const fetchDiaryDetail = async () => {
+      setLoading(true);
+      setError(null);
+      const token = window.sessionStorage.getItem("access_token");
+
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      try {
+        // 첫 번째 axios.get 호출에 토큰 포함
+        const response = await axios.get(`http://localhost:8000/diarys/${diary_id}`, { headers });
+        setDiary(response.data);
+
+        // 이미지가 있을 경우 presigned URL 요청 (이 부분은 이미 토큰을 사용하고 있었음)
         if (response.data.image) {
-          const token = window.sessionStorage.getItem("access_token");
           const presignedRes = await axios.get(
             `http://localhost:8000/diarys/download-url?file_key=${encodeURIComponent(response.data.image)}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } } // 여기는 이미 토큰이 있었음
           );
           setImageUrl(presignedRes.data.download_url);
         }
-      })
-      .catch(() => {
-        setError('일기 정보를 불러오는 데 실패했습니다.');
+      } catch (err) {
+        console.error("일기 정보 불러오기 실패:", err.response ? err.response.data : err.message);
+        
+        let errorMessage = "일기 정보를 불러오는 데 실패했습니다.";
+        if (err.response) {
+          if (err.response.status === 401) {
+            errorMessage = '로그인이 필요합니다. 일기 조회 권한이 없습니다.';
+          } else if (err.response.status === 403) {
+            errorMessage = '비공개 일기입니다. 이 일기에 접근할 권한이 없습니다.';
+          } else if (err.response.data && err.response.data.detail) {
+            errorMessage = err.response.data.detail;
+          }
+        }
+        
+        // alert 띄우고 확인 누르면 목록으로 이동
+        alert(errorMessage);
+        navigate("/list"); // 항상 목록으로 이동
+        // ------------------------------------
+
+      } finally {
         setLoading(false);
-      });
-  }, [diary_id]);
+      }
+    };
+
+    fetchDiaryDetail();
+  }, [diary_id, navigate]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
