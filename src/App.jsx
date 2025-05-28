@@ -11,6 +11,7 @@ import ModifyDetail from "./diary/ModifyDetail.jsx";
 
 import CalendarComponent from "./calendar";
 
+
 function Layout() {
     const [isLogin, setIsLogin] = useState(false);
     const navigate = useNavigate();
@@ -188,6 +189,7 @@ function Layout() {
 
 function App() {
     return (
+
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Layout />}>
@@ -205,6 +207,8 @@ function App() {
                 </Route>
             </Routes>
         </BrowserRouter>
+
+     
     );
 }
 export default App;

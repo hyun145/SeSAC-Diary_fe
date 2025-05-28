@@ -21,16 +21,44 @@ export default function Login() {
         formData.append("password", password);
 
         axios
+
             .post("http://localhost:8000/api/users/signin", formData, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
             })
+
             .then(res => {
                 console.log(res);
                 if (res.status === 200) {
                     alert(res.data.message);
+
+                    const accessToken = res.data.access_token; 
+
                     window.sessionStorage.setItem("access_token", res.data.access_token);
+
+                    // --- 핵심 추가 부분: user_id를 JWT 토큰에서 디코딩하여 저장 ---
+                    try {
+                        // JWT 토큰은 세 부분으로 나뉩니다: 헤더.페이로드.서명
+                        const base64Url = accessToken.split('.')[1]; // 페이로드 부분
+                        // Base64 URL 안전 문자열을 일반 Base64 문자열로 변환
+                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        // Base64 디코딩 후 JSON 파싱
+                        const decodedPayload = JSON.parse(window.atob(base64));
+
+                        // 'sub' 클레임에 사용자 ID가 저장되어 있다고 가정
+                        if (decodedPayload && decodedPayload.user_id) {
+                            window.sessionStorage.setItem("user_id", String(decodedPayload.user_id));
+                            console.log("Logged in user ID saved:", decodedPayload.user_id);
+                        } else {
+                            console.warn("JWT 페이로드에 'user_id' 클레임이 없습니다. 수정 버튼이 보이지 않을 수 있습니다.");
+                        }
+                    } catch (decodeError) {
+                        console.error("JWT 토큰 디코딩 중 오류 발생:", decodeError);
+                        // 오류 발생 시 user_id는 저장되지 않으므로, 수정 버튼이 나타나지 않을 수 있습니다.
+                    }
+                    // -------------------------------------------------------------
+
                     navigate("/list");  // 로그인 성공 시 일기장 목록으로 이동
                 }
             })

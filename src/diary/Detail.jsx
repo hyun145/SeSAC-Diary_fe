@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Detail = () => {
+
     const { diary_id } = useParams();
     const [diary, setDiary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -31,6 +32,7 @@ const Detail = () => {
             default:
                 return '❓';
         }
+
     };
 
     useEffect(() => {
@@ -137,9 +139,11 @@ const Detail = () => {
         }
     };
 
+
     const handleModify = () => {
         setIsMenuOpen(false); // 수정 버튼 클릭 시 메뉴 닫기
         navigate(`/modifydetail/${diary_id}`);
+
     };
 
     const toggleMenu = () => {
