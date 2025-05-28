@@ -51,6 +51,12 @@ const List = () => {
     // 로그인 체크
     useEffect(() => {
         const token = window.sessionStorage.getItem("access_token");
+        const userIdFromSession = window.sessionStorage.getItem("user_id"); 
+        
+        // 디버깅 로그
+        console.log("--- List.js: useEffect [로그인/사용자 ID 로드] ---");
+        console.log("SessionStorage Token:", token ? "존재함" : "없음");
+        console.log("SessionStorage User ID (원본):", userIdFromSession);
         if (!token) {
             alert("로그인 후 사용하세요.");
             navigate("/login");
@@ -128,15 +134,15 @@ const List = () => {
               )}
             />
 
-            <h2>
-                {new Date(selectedDate).toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'long'
-                })}의 일기
-            </h2>
-            
+   <h3>
+        {new Date(selectedDate).toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit', // 월을 두 자리 숫자로
+            day: '2-digit',   // 일을 두 자리 숫자로
+            weekday: 'short'  // 요일 (예: 수, 목)
+        })}
+    </h3>
+
             {filteredDiarys.length === 0 ? (
             <p>오늘은 일기가 없습니다.</p>
             ) : (
@@ -169,6 +175,13 @@ const List = () => {
                                     )}
                                     <div>
                                         <h3>{diary.title}</h3>
+                                        {/* --- 추가: 작성자 정보 표시 --- */}
+                                        {diary.username && (
+                                            <p className="diary-author" style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                                <strong>작성자:</strong> {diary.username}
+                                            </p>
+                                        )}
+                                        {/* --- 추가 끝 --- */}
                                         <p style={{ maxWidth: "500px", color: "#555" }}>
                                             {diary.content.length > 100
                                                 ? diary.content.slice(0, 100) + "..."

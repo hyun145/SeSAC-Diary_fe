@@ -54,10 +54,9 @@ export default function Login() {
                 <button type="submit">로그인</button>
             </form>
             <hr />
-            <button onClick={handleGoogleLogin} style={{ background: "#4285F4", color: "#fff", padding: "8px 16px", border: "none", borderRadius: "4px", marginTop: "10px" }}>
+            <button onClick={handleGoogleLogin} style={{ background: "#007bff", color: "#fff", padding: "8px 16px", border: "none", borderRadius: "4px", marginTop: "10px" }}>
                 Google 계정으로 로그인
             </button>
-            <hr />
             <p style={{ marginTop: "20px" }}>
                 아직 계정이 없으신가요?
                 <Link to="/userregform" style={{ marginLeft: "10px", color: "#007bff", textDecoration: "none" }}>회원가입</Link>
