@@ -9,6 +9,8 @@ import OauthHandler from "./user/OauthHandler";
 import UserRegForm from "./user/UserRegForm.jsx";
 import ModifyDetail from "./diary/ModifyDetail.jsx";
 
+import CallbackPage from './oauth/CallbackPage';
+
 import CalendarComponent from "./calendar";                         //캘린더
 
 function Layout() {
@@ -112,6 +114,7 @@ function App() {
                         <Route path="/oauth" element={<OauthHandler />} />
                         <Route path="/userregform" element={<UserRegForm />} />
                         <Route path="/modifydetail/:diary_id" element={<ModifyDetail />} />
+                        <Route path="/oauth/callback" element={<CallbackPage />} />
                         <Route path="/calendar" element={<CalendarComponent />} />
                     </Route>
                 </Routes>

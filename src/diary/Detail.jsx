@@ -75,7 +75,7 @@ const Detail = () => {
         }
       } catch (err) {
         console.error("일기 정보 불러오기 실패:", err.response ? err.response.data : err.message);
-        
+
         let errorMessage = "일기 정보를 불러오는 데 실패했습니다.";
         if (err.response) {
           if (err.response.status === 401) {
@@ -86,7 +86,7 @@ const Detail = () => {
             errorMessage = err.response.data.detail;
           }
         }
-        
+
         // alert 띄우고 확인 누르면 목록으로 이동
         alert(errorMessage);
         navigate("/list"); // 항상 목록으로 이동
@@ -99,6 +99,42 @@ const Detail = () => {
 
     fetchDiaryDetail();
   }, [diary_id, navigate]);
+
+  // --- 삭제 버튼 핸들러 함수 추가 ---
+  const handleDelete = async () => {
+    if (window.confirm("정말로 이 일기를 삭제하시겠습니까?")) {
+      const token = window.sessionStorage.getItem("access_token");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+        return;
+      }
+
+      try {
+        await axios.delete(`http://localhost:8000/diarys/${diary_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        alert("일기가 성공적으로 삭제되었습니다.");
+        navigate("/list"); // 삭제 후 목록 페이지로 이동
+      } catch (err) {
+        console.error("일기 삭제 실패:", err.response ? err.response.data : err.message);
+        let errorMessage = "일기 삭제에 실패했습니다.";
+        if (err.response) {
+          if (err.response.status === 401) {
+            errorMessage = "인증되지 않은 사용자입니다. 다시 로그인 해주세요.";
+          } else if (err.response.status === 403) {
+            errorMessage = "삭제 권한이 없습니다. 일기 작성자만 삭제할 수 있습니다.";
+          } else if (err.response.data && err.response.data.detail) {
+            errorMessage = err.response.data.detail;
+          }
+        }
+        alert(errorMessage);
+      }
+    }
+  };
+  // ----------------------------------
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -115,6 +151,10 @@ const Detail = () => {
   if (loading) return <p>로딩 중...</p>;
   if (error) return <p>{error}</p>;
   if (!diary) return <p>일기 정보가 없습니다.</p>;
+
+  const storedUserId = window.sessionStorage.getItem("user_id");
+  const loggedInUserId = storedUserId ? parseInt(storedUserId) : null;
+  const isCurrentUserOwner = (loggedInUserId !== null && !isNaN(loggedInUserId) && loggedInUserId === diary.user_id);
 
   return (
     <div ref={containerRef}>
@@ -164,9 +204,44 @@ const Detail = () => {
       <button onClick={() => navigate('/list')} style={{ marginTop: '20px' }}>
         목록으로
       </button>
-      <button onClick={() => navigate(`/modifydetail/${diary_id}`)} >
-        수정
-      </button>
+
+      
+      {/* --- isCurrentUserOwner가 true일 때만 수정 버튼과 삭제 버튼을 렌더링 --- */}
+      {isCurrentUserOwner && (
+        <> {/* 수정 및 삭제 버튼을 함께 렌더링하기 위해 Fragment 사용 */}
+          <button
+            onClick={() => navigate(`/modifydetail/${diary_id}`)}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '1em',
+              marginLeft: '10px' // 목록 버튼과의 간격 조절
+            }}
+          >
+            수정
+          </button>
+          
+          <button
+            onClick={handleDelete}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '1em',
+              marginLeft: '10px' // 수정 버튼과의 간격 조절
+            }}
+          >
+            삭제
+          </button>
+        </>
+      )}
     </div>
   );
 };
