@@ -2,6 +2,7 @@ import "../App.css";
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const Detail = () => {
     const { diary_id } = useParams();
@@ -15,6 +16,9 @@ const Detail = () => {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴 열림/닫힘 상태
     const menuRef = useRef(null); // 수정/삭제 메뉴용 ref
+
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [currentUserRole, setCurrentUserRole] = useState(null);
 
     const emotionToEmoji = (emotion) => {
         switch (emotion) {
@@ -34,10 +38,25 @@ const Detail = () => {
     };
 
     useEffect(() => {
+        // ★ JWT 토큰에서 사용자 정보 추출
+        const token = window.sessionStorage.getItem("access_token");
+        if (token) {
+            try {
+                const decodedToken = jwtDecode(token);
+                setCurrentUserId(decodedToken.user_id);
+                setCurrentUserRole(decodedToken.role);
+            } catch (e) {
+                console.error("토큰 디코딩 실패:", e);
+                // 유효하지 않은 토큰이면 로그인 상태 초기화
+                window.sessionStorage.removeItem("access_token");
+                setCurrentUserId(null);
+                setCurrentUserRole(null);
+            }
+        }
+
         const fetchDiaryDetail = async () => {
             setLoading(true);
             setError(null);
-            const token = window.sessionStorage.getItem("access_token");
 
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -54,7 +73,7 @@ const Detail = () => {
                 }
             } catch (err) {
                 console.error("일기 정보 불러오기 실패:", err.response ? err.response.data : err.message);
-                
+
                 let errorMessage = "일기 정보를 불러오는 데 실패했습니다.";
                 if (err.response) {
                     if (err.response.status === 401) {
@@ -65,7 +84,7 @@ const Detail = () => {
                         errorMessage = err.response.data.detail;
                     }
                 }
-                
+
                 alert(errorMessage);
                 navigate("/list");
             } finally {
@@ -74,9 +93,9 @@ const Detail = () => {
         };
 
         fetchDiaryDetail();
-    }, [diary_id, navigate]);
+    }, [diary_id, navigate]); // 의존성 배열에 diary_id, navigate 추가
 
-    // 이미지 다운로드 메뉴 외부 클릭 감지
+    // 이미지 다운로드 메뉴 외부 클릭 감지 (기존 코드와 동일)
     useEffect(() => {
         const handleClickOutsideImageMenu = (event) => {
             if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -89,7 +108,7 @@ const Detail = () => {
         };
     }, []);
 
-    // 수정/삭제 메뉴 외부 클릭 감지
+    // 수정/삭제 메뉴 외부 클릭 감지 (기존 코드와 동일)
     useEffect(() => {
         const handleClickOutsideActionMenu = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -150,82 +169,89 @@ const Detail = () => {
     if (error) return <p>{error}</p>;
     if (!diary) return <p>일기 정보가 없습니다.</p>;
 
+    // ★ 수정/삭제 버튼 렌더링 조건
+    const isOwner = currentUserId === diary.user_id; // 현재 로그인한 사용자가 일기 작성자인지
+    const isAdmin = currentUserRole === "admin";     // 현재 로그인한 사용자가 관리자인지
+
+    // 수정/삭제 버튼을 보여줄지 결정하는 최종 조건
+    const showEditDeleteButtons = isOwner || isAdmin;
+
     return (
-        <div style={{ padding: '20px' }}> {/* 이 div에는 relative를 제거하고, 헤더 div에 relative를 줍니다. */}
-            {/* 제목과 메뉴 버튼을 감싸는 컨테이너 */}
+        <div style={{ padding: '20px' }}>
             <div style={{
                 display: 'flex',
-                justifyContent: 'space-between', // 제목과 메뉴를 양 끝으로 정렬
-                alignItems: 'center',           // 수직 중앙 정렬
-                marginBottom: '20px',           // 아래 여백
-                position: 'relative',           // 메뉴 드롭다운의 기준점
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+                position: 'relative',
             }}>
                 <h2>{diary.title}</h2>
-                
-                {/* 메뉴 버튼 */}
-                <div style={{ position: 'relative' }} ref={menuRef}>
-                    <button
-                        onClick={toggleMenu}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '24px',
-                            cursor: 'pointer',
-                            color: '#333',
-                            padding: '5px' // 클릭 영역 확보
-                        }}
-                    >
-                        &#8942; {/* 유니코드 점점점 (vertical ellipsis) */}
-                    </button>
-                    {isMenuOpen && (
-                        <div style={{
-                            position: 'absolute',
-                            top: '40px', // 버튼 아래로
-                            right: '0',  // 버튼 오른쪽 끝에 맞춤
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            borderRadius: '5px',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                            padding: '10px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '5px',
-                            minWidth: '100px',
-                            zIndex: 1000 // 다른 요소 위에 표시
-                        }}>
-                            <button
-                                onClick={handleModify}
-                                style={{
-                                    padding: '8px 10px',
-                                    border: 'none',
-                                    background: 'none',
-                                    color: '#000000',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    width: '100%' // 버튼 너비 100%로 설정
-                                }}
-                            >
-                                수정
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                style={{
-                                    padding: '8px 10px',
-                                    border: 'none',
-                                    background: 'none',
-                                    textAlign: 'left',
-                                    cursor: 'pointer',
-                                    color: '#dc3545', // 삭제 버튼은 빨간색
-                                    width: '100%' // 버튼 너비 100%로 설정
-                                }}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    )}
-                </div>
+
+                {/* ★ 조건부 렌더링: showEditDeleteButtons가 true일 때만 메뉴 버튼 표시 */}
+                {showEditDeleteButtons && (
+                    <div style={{ position: 'relative' }} ref={menuRef}>
+                        <button
+                            onClick={toggleMenu}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                fontSize: '24px',
+                                cursor: 'pointer',
+                                color: '#333',
+                                padding: '5px'
+                            }}
+                        >
+                            &#8942; {/* 유니코드 점점점 (vertical ellipsis) */}
+                        </button>
+                        {isMenuOpen && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '40px',
+                                right: '0',
+                                backgroundColor: 'white',
+                                border: '1px solid #ccc',
+                                borderRadius: '5px',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '5px',
+                                minWidth: '100px',
+                                zIndex: 1000
+                            }}>
+                                <button
+                                    onClick={handleModify}
+                                    style={{
+                                        padding: '8px 10px',
+                                        border: 'none',
+                                        background: 'none',
+                                        color: '#000000',
+                                        textAlign: 'left',
+                                        cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    수정
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    style={{
+                                        padding: '8px 10px',
+                                        border: 'none',
+                                        background: 'none',
+                                        textAlign: 'left',
+                                        cursor: 'pointer',
+                                        color: '#dc3545',
+                                        width: '100%'
+                                    }}
+                                >
+                                    삭제
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
-            {/* 이미지 및 기타 일기 내용 */}
             {imageUrl && (
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                     <img
