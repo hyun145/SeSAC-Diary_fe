@@ -15,7 +15,7 @@ export default function Login() {
         e.preventDefault();
 
         axios
-            .post("http://localhost:8000/api/users/signin/",
+            .post("http://localhost:8000/users/signin/",
                 { username, password },
                 { headers: { "Content-Type": "application/x-www-form-urlencoded" } })
             .then(res => {

@@ -56,7 +56,6 @@ export default function Regist() {
         content: form.content,
         state: form.state,
         image: image_url,
-        diary_date: form.diary_date
       }, {
         headers: {
           Authorization: `Bearer ${token}`,
