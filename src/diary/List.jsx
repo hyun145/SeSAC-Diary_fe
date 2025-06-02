@@ -56,7 +56,7 @@ const List = () => {
             return;
         }
 
-        axios.get('http://localhost:8000/diary/', {
+        axios.get('http://localhost:8000/diarys/', {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then((response) => {

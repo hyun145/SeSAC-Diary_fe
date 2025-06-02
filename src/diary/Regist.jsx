@@ -1,6 +1,6 @@
 import "../App.css";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Regist() {
@@ -10,8 +10,20 @@ export default function Regist() {
     title: "",
     content: "",
     state: true,
+
   });
   const [image, setImage] = useState(null);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+
+  const getLocalDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 +1
+    const day = today.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const passedDate = location.state?.diary_date || getLocalDateString();
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +44,30 @@ export default function Regist() {
       state: e.target.value === "public" ? true : false,
     });
   };
+
+  const checkDuplicateDiary = async () => {
+    const token = window.sessionStorage.getItem("access_token");
+    try {
+      const res = await axios.get(`http://localhost:8000/diarys/check-duplicate`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { diary_date: passedDate }
+      });
+      setIsDuplicate(res.data.exists);  // true or false
+    } catch (err) {
+      console.error("중복 검사 실패:", err);
+      // 실패해도 그냥 false로 둬서 글쓰기는 진행 가능하게 둠
+      setIsDuplicate(false);
+    }
+  };
+
+  // 컴포넌트가 처음 마운트 될 때 중복 검사 실행
+  useEffect(() => {
+    checkDuplicateDiary();
+  }, [passedDate]);
+
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,6 +92,7 @@ export default function Regist() {
         content: form.content,
         state: form.state,
         image: image_url,
+        diary_date: passedDate,
       }, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -101,7 +138,9 @@ export default function Regist() {
           </select>
         </label>
         <br />
-        <button type="submit">등록</button>
+        <button type="submit" disabled={isDuplicate}>
+          {isDuplicate ? "이미 작성된 날짜입니다" : "등록"}
+        </button>
       </form>
       <button onClick={() => navigate('/list')} style={{ marginTop: '20px' }}>
         목록으로
