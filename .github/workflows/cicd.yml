@@ -1,0 +1,51 @@
+name: Deploy Frontend to EKS
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 푸시될 때만 실행
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  REPO_NAME: sesac-diary-frontend # 이 리포지토리에 해당하는 Docker Hub 리포지토리 이름
+  EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # 현재 리포지토리 루트를 빌드 컨텍스트로 사용
+          push: true
+          tags: ${{ env.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}
+
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Deploy Frontend to EKS
+        run: |
+          # React Deployment와 컨테이너 이름을 정확히 명시
+          kubectl set image deployment/react-deployment react-container=${{ env.DOCKERHUB_USERNAME }}/${{ env.REPO_NAME }}:${{ github.sha }}

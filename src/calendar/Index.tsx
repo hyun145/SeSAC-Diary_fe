@@ -6,7 +6,7 @@ import {
     StyledDate,
     StyledToday,
     StyledDot,
-} from "./styles";
+} from "./Styles";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];

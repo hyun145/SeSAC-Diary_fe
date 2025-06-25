@@ -16,7 +16,7 @@ const ModifyDetail = () => {
     useEffect(() => {
         const fetchDiaryData = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/diarys/${diary_id}`, {
+                const response = await axios.get(`/api/diarys/${diary_id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -75,7 +75,7 @@ const ModifyDetail = () => {
 
             if (image) { // 새 이미지가 선택된 경우에만 S3 업로드 진행
                 const ext = image.name.split('.').pop().toLowerCase();
-                const presignedRes = await axios.get(`http://localhost:8000/diarys/presigned-url?file_type=${ext}`, {
+                const presignedRes = await axios.get(`/api/presigned-url?file_type=${ext}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const { url, key } = presignedRes.data;
@@ -92,7 +92,7 @@ const ModifyDetail = () => {
             };
 
             // 일기 데이터를 PUT 요청으로 서버에 저장 (전체 업데이트)
-            await axios.put(`http://localhost:8000/diarys/${diary_id}`, updatedDiary, {
+            await axios.put(`/diarys/${diary_id}`, updatedDiary, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             alert("일기가 성공적으로 수정되었습니다.");
@@ -131,7 +131,7 @@ const ModifyDetail = () => {
                 {diary.image && ( // 기존 이미지가 있으면 표시
                     <div style={{ marginBottom: '10px' }}>
                         <p>현재 이미지:</p>
-                        <img src={`http://localhost:8000/diarys/download-url?file_key=${encodeURIComponent(diary.image)}`} 
+                        <img src={`/api/diarys/download-url?file_key=${encodeURIComponent(diary.image)}`}
                              alt="현재 일기 이미지"
                              style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }}
                         />

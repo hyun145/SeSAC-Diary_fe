@@ -48,7 +48,7 @@ export default function Regist() {
   const checkDuplicateDiary = async () => {
     const token = window.sessionStorage.getItem("access_token");
     try {
-      const res = await axios.get(`http://localhost:8000/diarys/check-duplicate`, {
+      const res = await axios.get(`/api/diarys/check-duplicate`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { diary_date: passedDate }
       });
@@ -78,7 +78,7 @@ export default function Regist() {
 
       if (image) {
         const ext = image.name.split('.').pop().toLowerCase();
-        const presignedRes = await axios.get(`http://localhost:8000/diarys/presigned-url?file_type=${ext}`, {
+        const presignedRes = await axios.get(`/api/diarys/presigned-url?file_type=${ext}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const { url, key } = presignedRes.data;
@@ -87,7 +87,7 @@ export default function Regist() {
         image_url = key;
       }
 
-      const res = await axios.post("http://localhost:8000/diarys/", {
+      const res = await axios.post("/api/diarys/", {
         title: form.title,
         content: form.content,
         state: form.state,

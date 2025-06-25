@@ -61,12 +61,12 @@ const Detail = () => {
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
             try {
-                const response = await axios.get(`http://localhost:8000/diarys/${diary_id}`, { headers });
+                const response = await axios.get(`/api/diarys/${diary_id}`, { headers });
                 setDiary(response.data);
 
                 if (response.data.image) {
                     const presignedRes = await axios.get(
-                        `http://localhost:8000/diarys/download-url?file_key=${encodeURIComponent(response.data.image)}`,
+                        `/api/diarys/download-url?file_key=${encodeURIComponent(response.data.image)}`,
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
                     setImageUrl(presignedRes.data.download_url);
@@ -138,7 +138,7 @@ const Detail = () => {
             }
 
             try {
-                await axios.delete(`http://localhost:8000/diarys/${diary_id}`, {
+                await axios.delete(`/api/diarys/${diary_id}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 alert("일기가 성공적으로 삭제되었습니다.");

@@ -9,7 +9,7 @@ import OauthHandler from "./user/OauthHandler";
 import UserRegForm from "./user/UserRegForm.jsx";
 import ModifyDetail from "./diary/ModifyDetail.jsx";
 
-import CalendarComponent from "./calendar";
+import CalendarComponent from "./calendar/Index";
 
 
 function Layout() {

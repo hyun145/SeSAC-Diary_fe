@@ -2,7 +2,7 @@ import "../App.css";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import CalendarComponent from '../calendar';
+import CalendarComponent from '../calendar/Index';
 
 const List = () => {
     const [diarys, setDiarys] = useState([]);
@@ -19,7 +19,7 @@ const List = () => {
     const getPresignedUrl = async (key) => {
         const token = window.sessionStorage.getItem("access_token");
         const res = await axios.get(
-            `http://localhost:8000/diarys/download-url?file_key=${encodeURIComponent(key)}`,
+            `/api/diarys/download-url?file_key=${encodeURIComponent(key)}`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
         return res.data.download_url;
@@ -56,7 +56,7 @@ const List = () => {
             return;
         }
 
-        axios.get('http://localhost:8000/diarys/', {
+        axios.get('/api/diarys/', {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then((response) => {

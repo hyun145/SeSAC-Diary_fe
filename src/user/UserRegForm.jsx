@@ -16,7 +16,7 @@ const UserRegForm = () => {
     const checkEmailDuplicate = async () => {
         try {
             console.log("Checking email:", email); // 이메일 값 확인
-            const response = await axios.get(`http://localhost:8000/users/checkemail/${email}`);
+            const response = await axios.get(`/api/users/checkemail/${email}`);
             console.log("일로 잘 들어옴,");
             if (response.data.message === 'Email available') {
                 setIsEmailAvailable(true);
@@ -36,7 +36,7 @@ const UserRegForm = () => {
 // 닉네임 중복 체크
     const checkUsernameDuplicate = async () => {
         try {
-            const response = await axios.get(`http://localhost:8000/users/checkusername/${username}`);
+            const response = await axios.get(`/api/users/checkusername/${username}`);
             if (response.data.message === 'Username available') {
                 setIsUsernameAvailable(true);
                 alert('사용 가능한 닉네임입니다.');
@@ -69,7 +69,7 @@ const UserRegForm = () => {
         // 이메일, 닉네임 중복이 없으면 회원가입 진행
         try {
             console.log("일로 들어옴. ")
-            const response = await axios.post('http://localhost:8000/users/signup', {
+            const response = await axios.post('/api/users/signup', {
                 email : email,
                 username: username,
                 password : password,

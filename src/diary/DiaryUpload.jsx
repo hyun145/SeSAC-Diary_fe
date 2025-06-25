@@ -22,7 +22,7 @@ export default function DiaryUpload() {
     const token = window.sessionStorage.getItem("access_token");
 
     try {
-      const presignedRes = await axios.get("http://localhost:8000/s3/presigned-url");
+      const presignedRes = await axios.get("/api/s3/presigned-url");
       const { url, key } = presignedRes.data;
 
       await axios.put(url, file, {
@@ -34,7 +34,7 @@ export default function DiaryUpload() {
       const imageUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
 
       await axios.post(
-        "http://localhost:8000/diaries/",
+        "/api/diaries/",
         { title, content, image_url: imageUrl },
         {
           headers: {

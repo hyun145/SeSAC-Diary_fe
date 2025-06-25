@@ -15,13 +15,14 @@ export default function Login() {
         e.preventDefault();
 
         axios
-            .post("http://localhost:8000/users/signin/",
+            .post("/api/users/signin",
                 { username, password },
                 { headers: { "Content-Type": "application/x-www-form-urlencoded" } })
             .then(res => {
                 console.log(res);
                 if (res.status === 200) {
                     // 메시지를 출력 -> 토큰을 저장 -> 일기장 목록으로 이동
+                    alert("배포 자동화 테스트.")
                     alert(res.data.message);
 
                     const accessToken = res.data.access_token; 
@@ -66,10 +67,10 @@ export default function Login() {
             });
     };
 
-    // 구글 로그인 버튼 클릭 시 백엔드로 이동
-    const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:8000/users/google/login";
-    };
+     // 구글 로그인 버튼 클릭 시 백엔드로 이동
+     const handleGoogleLogin = () => {
+         window.location.href = "/api/users/google/login";
+     };
 
     return (
         <>

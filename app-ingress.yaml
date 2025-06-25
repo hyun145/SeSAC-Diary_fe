@@ -1,0 +1,28 @@
+# app-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: diary-ingress
+  annotations:
+    # NGINX Ingress Controller를 사용함을 명시
+    kubernetes.io/ingress.class: "nginx"
+    # /api 경로 rewrite 설정 (선택 사항이지만 유용함)
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api(/|$)(.*)  # /api/ 또는 /api/경로 로 오는 모든 요청
+            pathType: Prefix
+            backend:
+              service:
+                name: fastapi-service  # 1단계에서 만든 FastAPI 서비스 이름
+                port:
+                  number: 80          # FastAPI 서비스의 포트
+          - path: /               # 그 외 모든 루트 경로 요청
+            pathType: Prefix
+            backend:
+              service:
+                name: react-service   # 1단계에서 만든 React 서비스 이름
+                port:
+                  number: 80          # React 서비스의 포트
